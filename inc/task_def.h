@@ -171,6 +171,12 @@ typedef enum {
 #define BSP_CTP_TASK_PRIO       TASK_PRIORITY_SOFT_REALTIME
 #define BSP_CTP_QUEUE_LENGTH    20
 
+/* sct key task definition*/
+#define SCT_KEY_TASK_NAME               "sct_key"
+#define SCT_KEY_TASK_STACKSIZE          (2048)
+#define SCT_KEY_TASK_PRIO               TASK_PRIORITY_NORMAL
+#define SCT_KEY_QUEUE_LENGTH            5
+
 /* for os utilization task */
 /*MTK_OS_CPU_UTILIZATION_ENABLE: This definition determines whether enable CPU utilization profiling feature, if enabled, can use AT command on MT25x3 or CLI command on MT76x7 to do CPU utilization profiling.*/
 #if defined(MTK_OS_CPU_UTILIZATION_ENABLE)
