@@ -1,1 +1,1 @@
-# bend_app
+# iot_sdk_demo
