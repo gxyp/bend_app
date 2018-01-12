@@ -171,10 +171,10 @@ include $(SOURCE_DIR)/middleware/MTK/bt_sink/module.mk
 
 # Main APP files
 APP_PATH        = $(patsubst $(SDK_PATH)/%,%,$(abspath $(dir $(PWD))))
-APP_PATH_SRC = project/mt2523_hdk/apps/iot_sdk_demo/src
-# APP_PATH_SRC_BT_AUDIO = project/mt2523_hdk/apps/iot_sdk_demo/src/bt_audio
-# APP_PATH_SRC_PXP = project/mt2523_hdk/apps/iot_sdk_demo/src/pxp_screen
-APP_PATH_SRC_DISP = project/mt2523_hdk/apps/iot_sdk_demo/src/display_demo
+APP_PATH_SRC = project/mt2523_hdk/apps/lyyh/src
+# APP_PATH_SRC_BT_AUDIO = project/mt2523_hdk/apps/lyyh/src/bt_audio
+# APP_PATH_SRC_PXP = project/mt2523_hdk/apps/lyyh/src/pxp_screen
+APP_PATH_SRC_DISP = project/mt2523_hdk/apps/lyyh/src/display_demo
 APP_PATH_SRC_WF = $(APP_PATH_SRC)/watch_face
 APP_PATH_SRC_HOGP = $(APP_PATH_SRC)/hogp
 APP_PATH_SRC_TT = $(APP_PATH_SRC)/traing_type
@@ -192,7 +192,7 @@ APP_FILES = $(APP_PATH_SRC)/main.c \
             $(APP_PATH_SRC)/FontRes.c
 
 # BT audio app
-# include $(SOURCE_DIR)/project/mt2523_hdk/apps/iot_sdk_demo/src/bt_audio/sink/module.mk
+# include $(SOURCE_DIR)/project/mt2523_hdk/apps/lyyh/src/bt_audio/sink/module.mk
 # APP_FILES += $(APP_PATH_SRC_BT_AUDIO)/bt_audio.c
 
 # APP_FILES += $(APP_PATH_SRC_PXP)/ble_gatt_common.c \
@@ -272,9 +272,9 @@ CFLAGS += -I$(SOURCE_DIR)/$(APP_PATH)/inc -I$(SOURCE_DIR)/driver/CMSIS/Include -
 CFLAGS += -I$(SOURCE_DIR)/driver/CMSIS/Device/MTK/mt2523/Include
 CFLAGS += -I$(SOURCE_DIR)/$(APP_PATH)/inc/fota_inc
 CFLAGS += -I$(SOURCE_DIR)/$(APP_PATH)/inc/pxp_screen
-#CFLAGS += -I$(SOURCE_DIR)/project/mt2523_hdk/apps/iot_sdk_demo/inc/pxp_screen
-#CFLAGS += -I$(SOURCE_DIR)/project/mt2523_hdk/apps/iot_sdk_demo/inc/bt_audio
-#CFLAGS += -I$(SOURCE_DIR)/project/mt2523_hdk/apps/iot_sdk_demo/inc/hogp
+#CFLAGS += -I$(SOURCE_DIR)/project/mt2523_hdk/apps/lyyh/inc/pxp_screen
+#CFLAGS += -I$(SOURCE_DIR)/project/mt2523_hdk/apps/lyyh/inc/bt_audio
+#CFLAGS += -I$(SOURCE_DIR)/project/mt2523_hdk/apps/lyyh/inc/hogp
 CFLAGS += -I$(SOURCE_DIR)/driver/chip/mt2523/include
 CFLAGS += -I$(SOURCE_DIR)/driver/chip/inc
 CFLAGS += -I$(SOURCE_DIR)/middleware/MTK/sensor_subsys/inc
