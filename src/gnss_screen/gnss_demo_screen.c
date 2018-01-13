@@ -896,7 +896,7 @@ static void show_gnss_screen001(void)
 void show_gnss_screen(void)
 {
     gdi_font_engine_color_t color;
-    demo_ui_register_keypad_event_callback(gnss_keypad_event_handler, NULL);
+    demo_ui_register_keypad_event_callback(gnss_keypad_event_handler, false, NULL);
     gnss_demo_main();
     color.alpha = 255;
     color.blue = 255;

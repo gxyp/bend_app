@@ -68,7 +68,7 @@
 
 #define RESIZE_RATE LCD_CURR_HEIGHT/240
 #define DEMO_ITEM_NAME_MAX_LEN 50
-TimerHandle_t vTraingtypeWatchfaceTimer = NULL;
+//TimerHandle_t vTraingtypeWatchfaceTimer = NULL;
 
 static struct {
   int32_t fota_title_x;
@@ -131,6 +131,7 @@ void traing_type_event_handler(message_id_enum event_id, int32_t param1, void* p
 
 }
 
+/*
 void vTraingtypeWatchfaceTimerCallback( TimerHandle_t xTimer )
 {
 	wf_app_task_enable_show();
@@ -159,6 +160,7 @@ void show_traingtypewatchface_timer_init(uint32_t time)
     }
 	xTimerStart(vTraingtypeWatchfaceTimer, 0);
 }
+*/
 
 static void traing_type_screen_cntx_init()
 {
@@ -334,37 +336,31 @@ static void traing_screen_draw()
 
 }
 
-static void traing_need_lcd_init(void)
-{
-	hal_display_pwm_deinit();
-	hal_display_pwm_init(HAL_DISPLAY_PWM_CLOCK_26MHZ);
-	hal_display_pwm_set_duty(20);
-
-}
-
 static void traing_screen_keypad_event_handler(hal_keypad_event_t* keypad_event,void* user_data)
 {
 		int32_t temp_index;
 		int32_t max_item_num;
 		int32_t temp_focus;
-	/*
-		keyvalue
-		13 0xd ---enter
-		14 0xe ---back
-		17 0x11---up
-		18 0x12---down
-	*/
-		traing_need_lcd_init();
+/*
+    keyvalue
+    13 0xd ---enter --- DEVICE_KEY_ENTER
+    14 0xe ---back  --- DEVICE_KEY_BACK
+    17 0x11---up  --- DEVICE_KEY_UP(0x14)
+    18 0x12---down  --- DEVICE_KEY_DOWN(0x15)   // gaochao up, down was not correct
+                        DEVICE_KEY_POWER
+*/
+
 		GRAPHICLOG("[chenchen traing_screen_keypad_event_handler key state=%d, position=%d\r\n", (int)keypad_event->state, (int)keypad_event->key_data);
+/*
 		if( xTimerReset( vTraingtypeWatchfaceTimer, 100 ) != pdPASS ) {
 		LOG_I(common, "chenchen main show traingtype timer fail");
 		}
-		
-		if (keypad_event->key_data == 0xd && keypad_event->state == 0){
+*/		
+		if (keypad_event->key_data == DEVICE_KEY_ENTER && keypad_event->state == 0){
 			temp_index = 1;
-		} else if (keypad_event->key_data == 0xe && keypad_event->state == 0){
+		} else if (keypad_event->key_data == DEVICE_KEY_BACK && keypad_event->state == 0){
 			temp_index = 2;
-		} else if (keypad_event->key_data == 0x11 && keypad_event->state == 0){
+		} else if (keypad_event->key_data == DEVICE_KEY_UP && keypad_event->state == 0){
 			temp_focus = traing_type_screen_cntx.focus_point_index+1;
 			max_item_num = traing_type_screen_cntx.total_item_num;
 			traing_type_screen_cntx.focus_point_index = temp_focus%max_item_num;
@@ -372,7 +368,7 @@ static void traing_screen_keypad_event_handler(hal_keypad_event_t* keypad_event,
 			if (traing_type_screen_cntx.focus_point_index < 0)
 				traing_type_screen_cntx.focus_point_index = 0;
 			
-		} else if (keypad_event->key_data == 0x12 && keypad_event->state == 0){
+		} else if (keypad_event->key_data == DEVICE_KEY_DOWN && keypad_event->state == 0){
 			temp_focus = traing_type_screen_cntx.focus_point_index-1;
 			max_item_num = traing_type_screen_cntx.total_item_num;
 			traing_type_screen_cntx.focus_point_index = temp_focus%max_item_num;
@@ -393,7 +389,7 @@ static void traing_screen_keypad_event_handler(hal_keypad_event_t* keypad_event,
 			case 0:
 				break;
 			case 1:
-				show_traingtypewatchface_timer_stop();
+//				show_traingtypewatchface_timer_stop();
 				curr_event_handler = demo_traing_item[traing_type_screen_cntx.focus_point_index].event_traing_handle_f;
 				if (demo_traing_item[traing_type_screen_cntx.focus_point_index].show_traing_screen_f) {
 					demo_traing_item[traing_type_screen_cntx.focus_point_index].show_traing_screen_f();
@@ -404,8 +400,8 @@ static void traing_screen_keypad_event_handler(hal_keypad_event_t* keypad_event,
 	
 		}
 
-		if (keypad_event->key_data == 0xe && keypad_event->state == 0){
-			show_traingtypewatchface_timer_stop();
+		if (keypad_event->key_data == DEVICE_KEY_BACK && keypad_event->state == 0){
+//			show_traingtypewatchface_timer_stop();
 			show_main_screen();
 		} else {
 			traing_screen_draw();
@@ -419,8 +415,8 @@ static void traing_screen_keypad_event_handler(hal_keypad_event_t* keypad_event,
 void show_traing_type_screen(void)
 {
 	traing_type_screen_cntx_init();
-	demo_ui_register_keypad_event_callback(traing_screen_keypad_event_handler, NULL);
+	demo_ui_register_keypad_event_callback(traing_screen_keypad_event_handler, true, NULL);
 	traing_screen_draw();
-	show_traingtypewatchface_timer_init(10);
+//	show_traingtypewatchface_timer_init(10);
 }
 

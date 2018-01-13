@@ -185,23 +185,24 @@ static void sensor_screen_keypad_event_handler(hal_keypad_event_t* keypad_event,
 		int32_t temp_index;
 		int32_t max_item_num;
 		int32_t temp_focus;
-	/*
-		keyvalue
-		13 0xd ---enter
-		14 0xe ---back
-		17 0x11---up
-		18 0x12---down
-	*/
+/*
+    keyvalue
+    13 0xd ---enter --- DEVICE_KEY_ENTER
+    14 0xe ---back  --- DEVICE_KEY_BACK
+    17 0x11---up  --- DEVICE_KEY_UP(0x14)
+    18 0x12---down  --- DEVICE_KEY_DOWN(0x15)   // gaochao up, down was not correct
+                        DEVICE_KEY_POWER
+*/
 	
 		GRAPHICLOG("[chenchen sensor_screen_keypad_event_handler key state=%d, position=%d\r\n", (int)keypad_event->state, (int)keypad_event->key_data);
 	
-		if (keypad_event->key_data == 0xd && keypad_event->state == 0){
+		if (keypad_event->key_data == DEVICE_KEY_ENTER && keypad_event->state == 0){
 			temp_index = 1;
-		} else if (keypad_event->key_data == 0xe && keypad_event->state == 0){
+		} else if (keypad_event->key_data == DEVICE_KEY_BACK && keypad_event->state == 0){
 			temp_index = 2;
-		} else if (keypad_event->key_data == 0x11 && keypad_event->state == 0){
+		} else if (keypad_event->key_data == DEVICE_KEY_UP && keypad_event->state == 0){
 			temp_index = 1;
-		} else if (keypad_event->key_data == 0x12 && keypad_event->state == 0){
+		} else if (keypad_event->key_data == DEVICE_KEY_DOWN && keypad_event->state == 0){
 			temp_index = 1;
 		}
 		
@@ -280,7 +281,7 @@ static void show_sensor_screen(void)
     }
 
 //    demo_ui_register_touch_event_callback(sensor_pen_event_handler, NULL);
-	demo_ui_register_keypad_event_callback(sensor_screen_keypad_event_handler, NULL);
+	demo_ui_register_keypad_event_callback(sensor_screen_keypad_event_handler, false, NULL);
     gdi_draw_filled_rectangle(0,0,sensor_screen_cntx.width-1,sensor_screen_cntx.height-1, sensor_screen_cntx.bg_color);
 
     gdi_font_engine_size_t font = GDI_FONT_ENGINE_FONT_MEDIUM;

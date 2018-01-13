@@ -178,7 +178,7 @@ void show_setting_gps_screen(void)
 	y = 50 * RESIZE_RATE;
 
 	setting_gps_screen_cntx_init();
-	demo_ui_register_keypad_event_callback(setting_gps_screen_keypad_event_handler, NULL);
+	demo_ui_register_keypad_event_callback(setting_gps_screen_keypad_event_handler, true, NULL);
 	
 	gdi_font_engine_display_string_info_t setting_gps_string_info = {0};
     gdi_draw_filled_rectangle(0,0,setting_gps_screen_cntx.width-1,setting_gps_screen_cntx.height-1, setting_gps_screen_cntx.bg_color);

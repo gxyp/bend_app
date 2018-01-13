@@ -73,7 +73,6 @@
 
 #define RESIZE_RATE LCD_CURR_HEIGHT/240
 #define DEMO_ITEM_NAME_MAX_LEN 50
-TimerHandle_t vAboutWatchfaceTimer = NULL;
 
 static struct {
   int32_t fota_title_x;
@@ -110,34 +109,6 @@ void about_screen_event_handler(message_id_enum event_id, int32_t param1, void* 
 
 }
 
-void vAboutWatchfaceTimerCallback( TimerHandle_t xTimer )
-{
-	wf_app_task_enable_show();
-
-}
-
-void show_aboutwatchface_timer_stop(void)
-{
-    if (vAboutWatchfaceTimer && (xTimerIsTimerActive(vAboutWatchfaceTimer) != pdFALSE)) {
-        xTimerStop(vAboutWatchfaceTimer, 0);
-    }
-
-}
-
-void show_aboutwatchface_timer_init(uint32_t time)
-{
-    if (vAboutWatchfaceTimer && (xTimerIsTimerActive(vAboutWatchfaceTimer) != pdFALSE)) {
-        xTimerStop(vAboutWatchfaceTimer, 0);
-    } else {
-		vAboutWatchfaceTimer = xTimerCreate( "vAboutWatchfaceTimer",           // Just a text name, not used by the kernel.
-                                      ( time*1000 / portTICK_PERIOD_MS), // The timer period in ticks.
-                                      pdFALSE,                    // The timer is a one-shot timer.
-                                      0,                          // The id is not used by the callback so can take any value.
-                                      vAboutWatchfaceTimerCallback     // The callback function that switches the LCD back-light off.
-                                   );
-    }
-	xTimerStart(vAboutWatchfaceTimer, 0);
-}
 
 static void about_screen_cntx_init()
 {
@@ -196,63 +167,13 @@ static uint8_t* about_convert_string_to_wstring(char* string)
     return wstring;
 }
 
-static void about_screen_need_lcd_init(void)
-{
-	hal_display_pwm_deinit();
-	hal_display_pwm_init(HAL_DISPLAY_PWM_CLOCK_26MHZ);
-	hal_display_pwm_set_duty(20);
-
-}
 
 static void about_screen_keypad_event_handler(hal_keypad_event_t* keypad_event,void* user_data)
 {
-		int32_t temp_index;
-		int32_t max_item_num;
-		int32_t temp_focus;
-	/*
-		keyvalue
-		13 0xd ---enter
-		14 0xe ---back
-		17 0x11---up
-		18 0x12---down
-	*/
-		about_screen_need_lcd_init();
-		GRAPHICLOG("[chenchen about_screen_keypad_event_handler key state=%d, position=%d\r\n", (int)keypad_event->state, (int)keypad_event->key_data);
-		if( xTimerReset( vAboutWatchfaceTimer, 100 ) != pdPASS ) {
-		LOG_I(common, "chenchen show about screen timer fail");
-		}
-		
-		if (keypad_event->key_data == 0xd && keypad_event->state == 0){
-			temp_index = 1;
-		} else if (keypad_event->key_data == 0xe && keypad_event->state == 0){
-			temp_index = 2;
-		} else if (keypad_event->key_data == 0x11 && keypad_event->state == 0){
-			temp_index = 1;
-		} else if (keypad_event->key_data == 0x12 && keypad_event->state == 0){
-			temp_index = 1;
-		}
-		
-		switch (temp_index){
-			case -1:
-				return;
-			case -2:
-//				main_screen_scroll_to_prevoius_page();
-				break;
-			case -3:
-//				main_screen_scroll_to_next_page();
-				break;
-			case 0:
-				break;
-			case 2:
-				show_aboutwatchface_timer_stop();
-				show_main_screen();
-				return;
-			default:
-				break;
-	
-		}
 
-
+    if (DEVICE_KEY_BACK == keypad_event->key_data) {
+        show_main_screen();
+    }
 }
 
 void  show_about_screen(void)
@@ -266,8 +187,7 @@ void  show_about_screen(void)
 	y = 30 * RESIZE_RATE;
 
 	about_screen_cntx_init();
-	demo_ui_register_keypad_event_callback(about_screen_keypad_event_handler, NULL);	
- 	show_aboutwatchface_timer_init(10);
+	demo_ui_register_keypad_event_callback(about_screen_keypad_event_handler, true, NULL);	
 
 	status = nvdm_read_data_item("BT", "address", bt_buffer, &size);
 	if (NVDM_STATUS_OK == status) {

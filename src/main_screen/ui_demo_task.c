@@ -68,10 +68,13 @@ static struct {
 	//add by chenchen
 	keypad_event_proc_func keypad_event_callback_f;
 //	powerkey_event_proc_func powerkey_event_callback_f;
+    bool Is_Need_Back_wf_Screen;
     void* user_data;
 } ui_task_cntx;
 
 TimerHandle_t vbacklightTimer = NULL;
+TimerHandle_t vbackwfScreenTimer = NULL;
+
 
 static int32_t ui_send_event_from_isr(message_id_enum event_id, int32_t param1, void* param2);
 
@@ -80,11 +83,18 @@ log_create_module(GRAPHIC_TAG, PRINT_LEVEL_INFO);
 //add by chenchen start 
 #ifdef MTK_KEYPAD_ENABLE
 
-void demo_ui_register_keypad_event_callback(keypad_event_proc_func proc_func, void* user_data)
+void demo_ui_register_keypad_event_callback(keypad_event_proc_func proc_func, bool needBackWF, void* user_data)
 {
     GRAPHICLOG("demo_ui_register_keypad_event_callback, proc_func:%x", proc_func);
+    ui_task_cntx.Is_Need_Back_wf_Screen = needBackWF;
     ui_task_cntx.keypad_event_callback_f = proc_func;
     ui_task_cntx.user_data = user_data;
+
+    if (needBackWF) {
+        backwfScreen_timer_init(15);
+    } else {
+        backwfScreen_timer_stop();
+    }
 }
 
 /*
@@ -104,7 +114,7 @@ void demo_ui_keypad_callback_func(sct_key_event_t event, uint8_t key_data, void 
         hal_display_pwm_deinit();
         hal_display_pwm_init(HAL_DISPLAY_PWM_CLOCK_26MHZ);
         hal_display_pwm_set_duty(20);
-        backlight_timer_init(10);      // backlight timeout setting to 10 second
+        backlight_timer_init(8);      // backlight timeout setting to 8 second
         ui_send_event(MESSAGE_ID_KEYPAD_EVENT, (int32_t)key_data, NULL);
     }
 
@@ -117,12 +127,6 @@ void demo_ui_keypad_callback_func(sct_key_event_t event, uint8_t key_data, void 
     }
 }
 
-/*
-static void demo_ui_keypad_callback_func(void* param)
-{
-    ui_send_event_from_isr(MESSAGE_ID_KEYPAD_EVENT, 0, NULL);
-}
-*/
 // ui key event functioin and call ui.keypad_callback for each screen
 // just follow previous callback design, will redesign later. 
 void keypad_event_handle(uint8_t key_data)
@@ -131,6 +135,10 @@ void keypad_event_handle(uint8_t key_data)
    
     keypad_event.state = HAL_KEYPAD_KEY_RELEASE;
     keypad_event.key_data = key_data;
+
+    if (ui_task_cntx.Is_Need_Back_wf_Screen) {
+        backwfScreen_timer_init(20);
+    }
     
     if (ui_task_cntx.keypad_event_callback_f) {
         GRAPHICLOG("gaochao keypad event handle, data:%x", keypad_event.key_data);
@@ -145,6 +153,8 @@ void vbacklightTimerCallback( TimerHandle_t xTimer )
     hal_display_pwm_deinit();
     hal_display_pwm_init(HAL_DISPLAY_PWM_CLOCK_26MHZ);
     hal_display_pwm_set_duty(0);
+
+    backlight_timer_stop();
 }
 
 void backlight_timer_stop(void)
@@ -168,6 +178,36 @@ void backlight_timer_init(uint32_t time)
     }
     xTimerStart(vbacklightTimer, 0);
 }
+
+void vbackwfScreenTimerCallback( TimerHandle_t xTimer )
+{
+// Should send message to ui task for back wf screen
+    ui_send_event(MESSAGE_ID_BACKWF_EVENT, 0, NULL);
+    backwfScreen_timer_stop();
+}
+
+void backwfScreen_timer_stop(void)
+{
+    if (vbackwfScreenTimer && (xTimerIsTimerActive(vbackwfScreenTimer) != pdFALSE)){
+        xTimerStop(vbackwfScreenTimer, 0);
+    }
+}
+
+void backwfScreen_timer_init(uint32_t time)
+{
+    if (vbackwfScreenTimer && (xTimerIsTimerActive(vbackwfScreenTimer) != pdFALSE)) {
+        xTimerStop(vbackwfScreenTimer, 0);
+    } else {
+        vbackwfScreenTimer = xTimerCreate( "vbackwfScreenTimer",           // Just a text name, not used by the kernel.
+                                      ( time*1000 / portTICK_PERIOD_MS), // The timer period in ticks.
+                                      pdFALSE,                    // The timer is a one-shot timer.
+                                      0,                          // The id is not used by the callback so can take any value.
+                                      vbackwfScreenTimerCallback     // The callback function that switches the LCD back-light off.
+                                   );
+    }
+    xTimerStart(vbackwfScreenTimer, 0);
+}
+
 
 #if 0
 /*
@@ -358,6 +398,11 @@ static void ui_task_msg_handler(ui_task_message_struct_t *message)
 			keypad_event_handle( (uint8_t)message->param1);
 			break;
 #endif
+        case MESSAGE_ID_BACKWF_EVENT:
+            backwfScreen_timer_stop();
+            wf_app_task_enable_show();
+            break;
+
         default:
             common_event_handler((message_id_enum) message->message_id, (int32_t) message->param1, (void*) message->param2);
             break;
@@ -458,6 +503,7 @@ void ui_task_main(void*arg)
     arg = arg;
     ui_task_cntx.event_queue = xQueueCreate(UI_TASK_QUEUE_SIZE , sizeof( ui_task_message_struct_t ) );
     GRAPHICLOG("ui_task_main");
+    backlight_timer_init(10);
     show_main_screen();
     while (1) {
         if (xQueueReceive(ui_task_cntx.event_queue, &queue_item, portMAX_DELAY)) {

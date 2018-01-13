@@ -344,7 +344,8 @@ static uint32_t wf_app_get_lcd_size(wf_app_lcd_type_t type)
   * If this option disabled, watch face can't work. */    
  #ifdef HAL_RTC_FEATURE_TIME_CALLBACK    
      hal_rtc_set_time_callback(wf_app_rtc_time_callback, NULL);
-     hal_rtc_set_time_notification_period(HAL_RTC_TIME_NOTIFICATION_EVERY_SECOND);
+//     hal_rtc_set_time_notification_period(HAL_RTC_TIME_NOTIFICATION_EVERY_SECOND);
+     hal_rtc_set_time_notification_period(HAL_RTC_TIME_NOTIFICATION_EVERY_MINUTE);
  #endif
  }
  
@@ -356,44 +357,6 @@ void wf_app_init(void)
     //xTaskCreate(wf_app_task, "wf_task", 1024, NULL, 1, NULL);
 
 }
-
-void vEnterSleepTimerCallback( TimerHandle_t xTimer )
-{
-//	bsp_backlight_deinit();
-	g_wf_is_lcd_need_init = true;
-
-	bsp_lcd_enter_idle();
-	/* If the macro is enabled, Watch face app will power off CTP to reduce leakage. 
-	 * User can close it for watch face app. */
-
-	//task_def_delete_wo_curr_task();
-	hal_sleep_manager_unlock_sleep(sdkdemo_sleep_handle);
-
-}
-
-void EnterSleep_timer_stop(void)
-{
-	if (vEnterSleepTimer && (xTimerIsTimerActive(vEnterSleepTimer) != pdFALSE)){
-		xTimerStop(vEnterSleepTimer, 0);
-	}
-}
-
-void EnterSleep_timer_init(uint32_t time)
-{
-    if (vEnterSleepTimer && (xTimerIsTimerActive(vEnterSleepTimer) != pdFALSE)) {
-        xTimerStop(vEnterSleepTimer, 0);
-    } else {
-		vEnterSleepTimer = xTimerCreate( "vEnterSleepTimer",           // Just a text name, not used by the kernel.
-                                      ( time*1000 / portTICK_PERIOD_MS), // The timer period in ticks.
-                                      pdFALSE,                    // The timer is a one-shot timer.
-                                      0,                          // The id is not used by the callback so can take any value.
-                                      vEnterSleepTimerCallback     // The callback function that switches the LCD back-light off.
-                                   );
-    }
-	xTimerStart(vEnterSleepTimer, 0);
-}
-
-
 
 void vPopupTimerCallback( TimerHandle_t xTimer )
 {
@@ -448,7 +411,6 @@ static void wf_show_pop_image(void)
 static void wf_need_lcd_init(void)
 {
 	hal_sleep_manager_lock_sleep(sdkdemo_sleep_handle);
-
 	bsp_lcd_exit_idle();
 	//bsp_backlight_init();
 }
@@ -839,11 +801,11 @@ void wf_app_task_enable_show(void)
 {
     hal_rtc_time_t time;
     bsp_lcd_clear_screen(0);
-	demo_ui_register_keypad_event_callback(wf_app_keypad_event_handler, NULL);
+	demo_ui_register_keypad_event_callback(wf_app_keypad_event_handler, false, NULL);
 //	demo_ui_register_powerkey_event_callback(wf_app_powerkey_event_handler, NULL);
 
     g_wf_is_show_screen = true;
-    g_wf_is_task_need_delete = false;         // will delete all task except watch face
+    g_wf_is_task_need_delete = false;         // enter idle for power save
 	g_wf_is_lcd_need_init = false;
 
     hal_rtc_get_time(&time);

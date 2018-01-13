@@ -190,7 +190,7 @@ void show_running_screen(void)
 	y = 50 * RESIZE_RATE;
 
 	running_screen_cntx_init();
-	demo_ui_register_keypad_event_callback(running_screen_keypad_event_handler, NULL);
+	demo_ui_register_keypad_event_callback(running_screen_keypad_event_handler, false, NULL);
 	
 	gdi_font_engine_display_string_info_t running_string_info = {0};
     gdi_draw_filled_rectangle(0,0,running_screen_cntx.width-1,running_screen_cntx.height-1, running_screen_cntx.bg_color);

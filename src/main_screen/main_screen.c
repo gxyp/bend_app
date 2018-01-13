@@ -56,6 +56,7 @@
 
 #include "hal_keypad.h"
 #include "battery_management.h"
+#include <wchar.h>
 
 #define CONFIG_INCLUDE_HEADER
 #include "screen_config.h"
@@ -67,7 +68,7 @@
 #define NEXT_PAGE_STRING_NAME "next page"
 #define DEMO_TITLE_STRING_NAME "Main menu:"
 
-TimerHandle_t vWatchfaceTimer = NULL;
+//TimerHandle_t vWatchfaceTimer = NULL;
 extern uint8_t sdkdemo_sleep_handle;
 
 
@@ -77,9 +78,22 @@ typedef struct list_item_struct {
     uint8_t name[DEMO_ITEM_NAME_MAX_LEN];
 } list_item_struct_t;
 
+typedef struct wlist_item_struct {
+    show_screen_proc_f show_screen_f;
+    event_handle_func event_handle_f;
+    wchar_t name[DEMO_ITEM_NAME_MAX_LEN];
+} wlist_item_struct_t;
 
 static const list_item_struct_t demo_item[] =
 {
+/*    
+   {show_traing_type_screen, traing_type_event_handler, L"训练类型"},  
+   {show_system_screen, system_screen_event_handler, L"训练类型"},
+   {show_settings_screen, settings_screen_event_handler, L"训练类型"},
+   {wf_app_task_enable_show, wf_event_handler, L"训练类型"},
+   {show_about_screen, about_screen_event_handler, L"训练类型"},
+//{show_sensor_ready_to_connect_screen, sensor_event_handler, {0x73,0x51,0x8E,0x4E,0x00}},
+*/
 #include "screen_config.h"
 };
 
@@ -122,37 +136,6 @@ static void main_screen_event_handle(message_id_enum event_id, int32_t param1, v
 {
 }
 
-void vWatchfaceTimerCallback( TimerHandle_t xTimer )
-{
-	if (demo_item[3].show_screen_f) {
-		demo_item[3].show_screen_f();
-		GRAPHICLOG("show_main_wf");
-	}
-
-}
-
-void show_watchface_timer_stop(void)
-{
-    if (vWatchfaceTimer && (xTimerIsTimerActive(vWatchfaceTimer) != pdFALSE)) {
-        xTimerStop(vWatchfaceTimer, 0);
-    }
-
-}
-
-void show_watchface_timer_init(uint32_t time)
-{
-    if (vWatchfaceTimer && (xTimerIsTimerActive(vWatchfaceTimer) != pdFALSE)) {
-        xTimerStop(vWatchfaceTimer, 0);
-    } else {
-		vWatchfaceTimer = xTimerCreate( "vWatchfaceTimer",           // Just a text name, not used by the kernel.
-                                      ( time*1000 / portTICK_PERIOD_MS), // The timer period in ticks.
-                                      pdFALSE,                    // The timer is a one-shot timer.
-                                      0,                          // The id is not used by the callback so can take any value.
-                                      vWatchfaceTimerCallback     // The callback function that switches the LCD back-light off.
-                                   );
-    }
-	xTimerStart(vWatchfaceTimer, 0);
-}
 
 static void main_need_lcd_init(void)
 {
@@ -180,11 +163,12 @@ static void main_screen_keypad_event_handler(hal_keypad_event_t* keypad_event,vo
 */
 	main_need_lcd_init();
 
+/*
 	GRAPHICLOG("[chenchen main_screen_keypad_event_handler key state=%d, position=%d\r\n", (int)keypad_event->state, (int)keypad_event->key_data);
 	if( xTimerReset( vWatchfaceTimer, 100 ) != pdPASS ) {
 		LOG_I(common, "chenchen main show wf_xTimerReset fail");
 	}
-
+*/
 
 	if (keypad_event->key_data == DEVICE_KEY_ENTER && keypad_event->state == 0){
 		temp_index = 1;   // Enter
@@ -217,15 +201,12 @@ static void main_screen_keypad_event_handler(hal_keypad_event_t* keypad_event,vo
 			main_screen_scroll_to_next_page();
 			break;
 		case -1:
-			show_watchface_timer_stop();
-			curr_event_handler = demo_item[3].event_handle_f;
-			if (demo_item[3].show_screen_f) {
-				demo_item[3].show_screen_f();
-			}
+//			show_watchface_timer_stop();
+            ui_send_event(MESSAGE_ID_BACKWF_EVENT, 0, NULL);
 			return;
 
 		case 1:
-			show_watchface_timer_stop();
+//			show_watchface_timer_stop();
 			curr_event_handler = demo_item[main_screen_cntx.focus_point_index].event_handle_f;
             if (demo_item[main_screen_cntx.focus_point_index].show_screen_f) {
                 demo_item[main_screen_cntx.focus_point_index].show_screen_f();
@@ -320,6 +301,8 @@ static void main_screen_cntx_init()
 
     string_info.string = convert_string_to_wstring((uint8_t*) demo_item[0].name);
     string_info.count = strlen((char*) demo_item[0].name);
+//    string_info.string = (uint8_t*) demo_item[0].name;
+//    string_info.count = wcslen(demo_item[0].name);
     gdi_font_engine_get_string_information(&string_info);
     main_screen_cntx.item_width = string_info.width;
     main_screen_cntx.item_height = string_info.height;
@@ -590,7 +573,8 @@ static void tui_main_screen_draw()
 	param.x = x;
 	param.y = y - 90;
 	param.string = (uint8_t*) demo_item[pre].name;
-	param.length = 4;
+//  param.length = wcslen(demo_item[pre].name);
+    param.length = 4;
 	param.baseline_height = -1;
 	gdi_font_engine_display_string(&param);
 
@@ -606,7 +590,7 @@ static void tui_main_screen_draw()
 	param.x = x;
 	param.y = y + 73;
 	param.string = (uint8_t*) demo_item[next].name;
-	param.length = 4;
+    param.length = 4;
 	param.baseline_height = -1;
 	gdi_font_engine_display_string(&param);
 
@@ -780,7 +764,7 @@ void show_main_screen()
 	static int32_t is_show_logo_screen;
     curr_event_handler = main_screen_event_handle;
 //    demo_ui_register_touch_event_callback(main_screen_pen_event_handler, NULL);
-	demo_ui_register_keypad_event_callback(main_screen_keypad_event_handler, NULL);
+	demo_ui_register_keypad_event_callback(main_screen_keypad_event_handler, true, NULL);
 
     if (!is_init) {
         is_init = 1;
@@ -810,7 +794,5 @@ void show_main_screen()
     GRAPHICLOG("show_main_screen");
 //    main_screen_draw();
 	tui_main_screen_draw();
-	show_watchface_timer_init(10);
-
 }
 

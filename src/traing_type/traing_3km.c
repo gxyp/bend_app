@@ -520,7 +520,7 @@ void show_running_3km_screen(void)
 	TaskHandle_t xCreatedTraining3KMTask;
 	
 	running_3km_screen_cntx_init();
-	demo_ui_register_keypad_event_callback(running_3km_screen_keypad_event_handler, NULL);
+	demo_ui_register_keypad_event_callback(running_3km_screen_keypad_event_handler, false, NULL);
 	gnss_3km_main();
 
 	if(pdPASS !=xTaskCreate(training_3km, TRAINING_3KM_TASK_NAME, TRAINING_3KM_TASK_STACK_SIZE /((uint32_t)sizeof(StackType_t)), NULL, TRAINING_3KM_TASK_PRIO, &xCreatedTraining3KMTask)){

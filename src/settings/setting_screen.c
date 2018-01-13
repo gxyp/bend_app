@@ -341,24 +341,25 @@ static void setting_screen_keypad_event_handler(hal_keypad_event_t* keypad_event
 		int32_t temp_index;
 		int32_t max_item_num;
 		int32_t temp_focus;
-	/*
-		keyvalue
-		13 0xd ---enter
-		14 0xe ---back
-		17 0x11---up
-		18 0x12---down
-	*/
+/*
+    keyvalue
+    13 0xd ---enter --- DEVICE_KEY_ENTER
+    14 0xe ---back  --- DEVICE_KEY_BACK
+    17 0x11---up  --- DEVICE_KEY_UP(0x14)
+    18 0x12---down  --- DEVICE_KEY_DOWN(0x15)   // gaochao up, down was not correct
+                        DEVICE_KEY_POWER
+*/
 		setting_screen_need_lcd_init();
 		GRAPHICLOG("[chenchen setting_screen_keypad_event_handler key state=%d, position=%d\r\n", (int)keypad_event->state, (int)keypad_event->key_data);
 		if( xTimerReset( vSettingWatchfaceTimer, 100 ) != pdPASS ) {
 		LOG_I(common, "chenchen setting show timer fail");
 		}
 
-		if (keypad_event->key_data == 0xd && keypad_event->state == 0){
+		if (keypad_event->key_data == DEVICE_KEY_ENTER && keypad_event->state == 0){
 			temp_index = 1;
-		} else if (keypad_event->key_data == 0xe && keypad_event->state == 0){
+		} else if (keypad_event->key_data == DEVICE_KEY_BACK && keypad_event->state == 0){
 			temp_index = 2;
-		} else if (keypad_event->key_data == 0x11 && keypad_event->state == 0){
+		} else if (keypad_event->key_data == DEVICE_KEY_UP && keypad_event->state == 0){
 			temp_focus = setting_screen_cntx.focus_point_index+1;
 			max_item_num = setting_screen_cntx.total_item_num;
 			setting_screen_cntx.focus_point_index = temp_focus%max_item_num;
@@ -366,7 +367,7 @@ static void setting_screen_keypad_event_handler(hal_keypad_event_t* keypad_event
 			if (setting_screen_cntx.focus_point_index < 0)
 				setting_screen_cntx.focus_point_index = 0;
 			
-		} else if (keypad_event->key_data == 0x12 && keypad_event->state == 0){
+		} else if (keypad_event->key_data == DEVICE_KEY_DOWN && keypad_event->state == 0){
 			temp_focus = setting_screen_cntx.focus_point_index-1;
 			max_item_num = setting_screen_cntx.total_item_num;
 			setting_screen_cntx.focus_point_index = temp_focus%max_item_num;
@@ -398,7 +399,7 @@ static void setting_screen_keypad_event_handler(hal_keypad_event_t* keypad_event
 	
 		}
 
-		if (keypad_event->key_data == 0xe && keypad_event->state == 0){
+		if (keypad_event->key_data == DEVICE_KEY_BACK && keypad_event->state == 0){
 			show_settingwatchface_timer_stop();
 			show_main_screen();
 		} else {
@@ -412,7 +413,7 @@ static void setting_screen_keypad_event_handler(hal_keypad_event_t* keypad_event
 void show_settings_screen(void)
 {
 	setting_screen_cntx_init();
-	demo_ui_register_keypad_event_callback(setting_screen_keypad_event_handler, NULL);
+	demo_ui_register_keypad_event_callback(setting_screen_keypad_event_handler, true, NULL);
 	setting_screen_draw();
 	show_settingwatchface_timer_init(10);
 }
