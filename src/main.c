@@ -417,12 +417,19 @@ static void syslog_port_service_init(void)
     serial_port_dev_t syslog_port;
     serial_port_setting_uart_t uart_setting;
 
+/*
     if (serial_port_config_read_dev_number("syslog", &syslog_port) != SERIAL_PORT_STATUS_OK) {
         syslog_port = SERIAL_PORT_DEV_UART_2;
         serial_port_config_write_dev_number("syslog", syslog_port);
         uart_setting.baudrate = HAL_UART_BAUDRATE_115200;
         serial_port_config_write_dev_setting(syslog_port, (serial_port_dev_setting_t *)&uart_setting);
     }
+*/
+    // set syslog port to usb com2 port(debug port)
+    syslog_port = SERIAL_PORT_DEV_USB_COM2;
+    serial_port_config_write_dev_number("syslog", syslog_port);
+    uart_setting.baudrate = HAL_UART_BAUDRATE_115200;
+    serial_port_config_write_dev_setting(syslog_port, (serial_port_dev_setting_t *)&uart_setting);
 }
 #endif
 

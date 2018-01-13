@@ -166,7 +166,7 @@ void task_def_init(void)
 {
     serial_port_dev_t port;
     serial_port_setting_uart_t uart_setting;
-
+/*
     if (serial_port_config_read_dev_number("atci", &port) != SERIAL_PORT_STATUS_OK)
     {
         port = SERIAL_PORT_DEV_USB_COM1;
@@ -175,12 +175,19 @@ void task_def_init(void)
         uart_setting.baudrate = HAL_UART_BAUDRATE_115200;
         serial_port_config_write_dev_setting(port, (serial_port_dev_setting_t *)&uart_setting);
     }
+*/
+    // set at port to usb com1 port(modem port)
+    port = SERIAL_PORT_DEV_USB_COM1;
+    serial_port_config_write_dev_number("atci", port);
+    uart_setting.baudrate = HAL_UART_BAUDRATE_115200;
+    serial_port_config_write_dev_setting(port, (serial_port_dev_setting_t *)&uart_setting);
+
     atci_init(port);
 
 }
 
 #else
-    atci_init(HAL_UART_1);
+    atci_init(HAL_UART_1);         xxxx error
 #endif
 
 #endif
