@@ -497,10 +497,11 @@ static void wf_app_keypad_event_handler(hal_keypad_event_t* keypad_event,void* u
     static int32_t temp_index;
 /*
 	keyvalue
-	13 0xd ---enter
-	14 0xe ---back
-	17 0x11---up
-	18 0x12---down
+	13 0xd ---enter --- DEVICE_KEY_ENTER
+	14 0xe ---back  --- DEVICE_KEY_BACK
+	17 0x11---up  --- DEVICE_KEY_UP
+	18 0x12---down  --- DEVICE_KEY_DOWN
+                        DEVICE_KEY_POWER
 */
 
 	LOG_I(common, "chenchen wf_app_keypad handler %d",keypad_event->key_data);
@@ -520,13 +521,13 @@ static void wf_app_keypad_event_handler(hal_keypad_event_t* keypad_event,void* u
 	if (keypad_event->state == 1){
 		return;
 	} else {
-		if (keypad_event->key_data == 0xd && keypad_event->state == 0){
+		if (keypad_event->key_data == DEVICE_KEY_ENTER && keypad_event->state == 0){
 			temp_index = 1;
-		} else if (keypad_event->key_data == 0xe && keypad_event->state == 0){
+		} else if (keypad_event->key_data == DEVICE_KEY_BACK && keypad_event->state == 0){
 			temp_index = 2;
-		} else if (keypad_event->key_data == 0x11 && keypad_event->state == 0){
+		} else if (keypad_event->key_data == DEVICE_KEY_UP && keypad_event->state == 0){
 			temp_index = 3;
-		} else if (keypad_event->key_data == 0x12 && keypad_event->state == 0){
+		} else if (keypad_event->key_data == DEVICE_KEY_DOWN && keypad_event->state == 0){
 			temp_index = 4;
 		}
 	}
@@ -923,7 +924,7 @@ void wf_app_task_enable_show(void)
 {
     bsp_lcd_clear_screen(0);
 	demo_ui_register_keypad_event_callback(wf_app_keypad_event_handler, NULL);
-	demo_ui_register_powerkey_event_callback(wf_app_powerkey_event_handler, NULL);
+//	demo_ui_register_powerkey_event_callback(wf_app_powerkey_event_handler, NULL);
 
 
     g_wf_is_show_screen = true;

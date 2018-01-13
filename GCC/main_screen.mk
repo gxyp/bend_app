@@ -10,3 +10,4 @@ CFLAGS  += -I$(SOURCE_DIR)/driver/chip/inc
 CFLAGS  += -I$(SOURCE_DIR)/driver/chip/mt2523/inc
 CFLAGS  += -I$(SOURCE_DIR)/driver/board/component/lcm/ST7789H2
 CFLAGS  += -I$(SOURCE_DIR)/driver/board/component/common
+CFLAGS  += -I$(SOURCE_DIR)/middleware/MTK/key_event/common/inc

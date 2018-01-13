@@ -40,7 +40,8 @@
 #include "bsp_ctp.h"
 #include "task_def.h"
 
-//add by chenchen
+//add by chenchen // change by gaochao
+#include "sct_key_event.h"
 #include "hal_keypad.h"
 
 #define UI_TASK_QUEUE_SIZE 20
@@ -78,42 +79,57 @@ void demo_ui_register_keypad_event_callback(keypad_event_proc_func proc_func, vo
     ui_task_cntx.user_data = user_data;
 }
 
+/*
 void user_keypad_callback (void *user_data)
 {
      hal_keypad_event_t keypad_event;
      hal_keypad_get_key(&keypad_event);
 }
+*/
+// callback function registered inside sct_key module
+void demo_ui_keypad_callback_func(sct_key_event_t event, uint8_t key_data, void *user_data)
+{
+    GRAPHICLOG("[ui_demo]sct_key_event %d, key_data %d",event,key_data);
+    // Need add backlight control in here
 
+    // Send message to demo ui task
+    if ( SCT_KEY_RELEASE == event ) {
+        ui_send_event(MESSAGE_ID_KEYPAD_EVENT, (int32_t)key_data, NULL);
+    }
 
+    // long press power_key to power off
+    if ( SCT_KEY_LONG_PRESS_2 == event && DEVICE_KEY_POWER == key_data ) 
+    {
+        hal_rtc_set_time_notification_period(HAL_RTC_TIME_NOTIFICATION_NONE);
+        hal_sleep_manager_enter_power_off_mode();
+
+    }
+}
+
+/*
 static void demo_ui_keypad_callback_func(void* param)
 {
     ui_send_event_from_isr(MESSAGE_ID_KEYPAD_EVENT, 0, NULL);
 }
-
-static void keypad_event_handle()
+*/
+// ui key event functioin and call ui.keypad_callback for each screen
+// just follow previous callback design, will redesign later. 
+void keypad_event_handle(int key_data)
 {
-    hal_keypad_status_t ret;
     hal_keypad_event_t keypad_event;
-
+   
+    keypad_event.state = HAL_KEYPAD_KEY_RELEASE;
+    keypad_event.key_data = key_data;
     
-    GRAPHICLOG("keypad_event_handle");
-
-    ret = hal_keypad_get_key(&keypad_event);
-    GRAPHICLOG("keypad_get_event_data ret:%d", ret);
-    while (ret == HAL_KEYPAD_STATUS_OK) {
-        ret = hal_keypad_get_key(&keypad_event);
-        if (ui_task_cntx.keypad_event_callback_f) {
-        GRAPHICLOG("chenchen keypad event handle, data:%d", keypad_event.key_data);
+    if (ui_task_cntx.keypad_event_callback_f) {
+        GRAPHICLOG("gaochao keypad event handle, data:%x", keypad_event.key_data);
         ui_task_cntx.keypad_event_callback_f(&keypad_event, ui_task_cntx.user_data);
-    	}
-    }
-
-
+   	}
 }
 #endif
 
-#if 1
-
+#if 0
+/*
 void demo_ui_register_powerkey_event_callback(powerkey_event_proc_func proc_func, void* user_data)
 {
     GRAPHICLOG("demo_ui_register_powerkey_event_callback, proc_func:%x", proc_func);
@@ -126,6 +142,7 @@ static void demo_ui_powerkey_callback_func(void* param)
     ui_send_event_from_isr(MESSAGE_ID_POWERKEY_EVENT, 0, NULL);
 
 }
+
 
 static void powerkey_event_handle()
 {
@@ -145,6 +162,7 @@ static void powerkey_event_handle()
     }
 
 }
+*/
 #endif
 //chenchen end
 
@@ -297,10 +315,10 @@ static void ui_task_msg_handler(ui_task_message_struct_t *message)
 #endif
 #ifdef MTK_KEYPAD_ENABLE
 		case MESSAGE_ID_KEYPAD_EVENT:
-			keypad_event_handle();
+			keypad_event_handle(message->param1);
 			break;
 #endif
-#if 1 //def MTK_POWERKEY_ENABLE
+#if 0 //def MTK_POWERKEY_ENABLE
 		case MESSAGE_ID_POWERKEY_EVENT:
 			powerkey_event_handle();
 			break;
@@ -380,17 +398,21 @@ void ui_task_main(void*arg)
     ret = bsp_ctp_register_callback(demo_ui_ctp_callback_func, NULL);
     GRAPHICLOG("ctp register callback, ret:%d", ret);
 #endif
-//add by chenchen
+//add by chenchen  // change by gaochao
 #ifdef MTK_KEYPAD_ENABLE
-	hal_keypad_status_t st;
-	st = keypad_custom_init();
-	GRAPHICLOG("keypad init, ret:%d", st);
-	st = hal_keypad_register_callback(demo_ui_keypad_callback_func,NULL);
-	GRAPHICLOG("keypad register callback, ret:%d", st);
-	hal_keypad_enable(); 
+    bool status;
+    status = sct_key_event_init();
+    if (status != true) {
+        GRAPHICLOG("[ui_demo][sct_Keypad] sct key init fail, status:%d", status);
+    }
+
+    status = sct_key_register_callback(demo_ui_keypad_callback_func, NULL);
+    if (status != true) {
+        GRAPHICLOG("[ui_demo][sct_Keypad] register callback fail, status:%d", status);
+    }
 #endif
 
-#if 1 //def MTK_POWERKEY_ENABLE
+#if 0 //def MTK_POWERKEY_ENABLE
 	hal_keypad_status_t pk;
 	pk = keypad_custom_powerkey_init();
 	GRAPHICLOG("powerkey init, ret:%d", st);

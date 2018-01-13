@@ -68,6 +68,7 @@ extern "C" {
 #define HAL_ISINK_MODULE_ENABLED       
 /* The configurations relative to keypad are in the custom files under driver\board\<mtxxxx_hdk>\keypad.*/ 
 #define HAL_KEYPAD_MODULE_ENABLED
+#define HAL_KEYPAD_FEATURE_POWERKEY    // gaochao enable powerkey in sct_key_event
 #define HAL_MPU_MODULE_ENABLED  
 #define HAL_NVIC_MODULE_ENABLED   
 #define HAL_PWM_MODULE_ENABLED         

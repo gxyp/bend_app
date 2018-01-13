@@ -110,4 +110,4 @@ MTK_TE_ENABLE = y
 MTK_KEYPAD_ENABLE = y
 
 #Enable powerkey feature
-MTK_POWERKEY_ENABLE = y
+#MTK_POWERKEY_ENABLE = y
