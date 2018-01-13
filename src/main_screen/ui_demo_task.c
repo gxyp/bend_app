@@ -40,6 +40,13 @@
 #include "bsp_ctp.h"
 #include "task_def.h"
 
+#include "bsp_lcd.h"
+#include "mt25x3_hdk_backlight.h"
+#include "hal_display_pwm.h"
+#include "hal_display_pwm_internal.h"
+#include "timers.h" 
+
+
 //add by chenchen // change by gaochao
 #include "sct_key_event.h"
 #include "hal_keypad.h"
@@ -60,10 +67,11 @@ static struct {
     touch_event_proc_func touch_event_callback_f;
 	//add by chenchen
 	keypad_event_proc_func keypad_event_callback_f;
-	powerkey_event_proc_func powerkey_event_callback_f;
+//	powerkey_event_proc_func powerkey_event_callback_f;
     void* user_data;
 } ui_task_cntx;
 
+TimerHandle_t vbacklightTimer = NULL;
 
 static int32_t ui_send_event_from_isr(message_id_enum event_id, int32_t param1, void* param2);
 
@@ -94,6 +102,10 @@ void demo_ui_keypad_callback_func(sct_key_event_t event, uint8_t key_data, void 
 
     // Send message to demo ui task
     if ( SCT_KEY_RELEASE == event ) {
+        hal_display_pwm_deinit();
+        hal_display_pwm_init(HAL_DISPLAY_PWM_CLOCK_26MHZ);
+        hal_display_pwm_set_duty(20);
+        backlight_timer_init(10);     
         ui_send_event(MESSAGE_ID_KEYPAD_EVENT, (int32_t)key_data, NULL);
     }
 
@@ -114,7 +126,7 @@ static void demo_ui_keypad_callback_func(void* param)
 */
 // ui key event functioin and call ui.keypad_callback for each screen
 // just follow previous callback design, will redesign later. 
-void keypad_event_handle(int key_data)
+void keypad_event_handle(uint8_t key_data)
 {
     hal_keypad_event_t keypad_event;
    
@@ -127,6 +139,36 @@ void keypad_event_handle(int key_data)
    	}
 }
 #endif
+
+void vbacklightTimerCallback( TimerHandle_t xTimer )
+{
+//  bsp_backlight_deinit();
+    hal_display_pwm_deinit();
+    hal_display_pwm_init(HAL_DISPLAY_PWM_CLOCK_26MHZ);
+    hal_display_pwm_set_duty(0);
+}
+
+void backlight_timer_stop(void)
+{
+    if (vbacklightTimer && (xTimerIsTimerActive(vbacklightTimer) != pdFALSE)){
+        xTimerStop(vbacklightTimer, 0);
+    }
+}
+
+void backlight_timer_init(uint32_t time)
+{
+    if (vbacklightTimer && (xTimerIsTimerActive(vbacklightTimer) != pdFALSE)) {
+        xTimerStop(vbacklightTimer, 0);
+    } else {
+        vbacklightTimer = xTimerCreate( "vbacklightTimer",           // Just a text name, not used by the kernel.
+                                      ( time*1000 / portTICK_PERIOD_MS), // The timer period in ticks.
+                                      pdFALSE,                    // The timer is a one-shot timer.
+                                      0,                          // The id is not used by the callback so can take any value.
+                                      vbacklightTimerCallback     // The callback function that switches the LCD back-light off.
+                                   );
+    }
+    xTimerStart(vbacklightTimer, 0);
+}
 
 #if 0
 /*
@@ -303,7 +345,6 @@ static void ui_task_msg_handler(ui_task_message_struct_t *message)
     if (!message) {
         return;
     }
-    GRAPHICLOG("ui_task_msg_handler, message_id:%d", message->message_id);
     switch (message->message_id) {
         
         // this option is used for touch panel, This project support touch panel.
@@ -315,12 +356,7 @@ static void ui_task_msg_handler(ui_task_message_struct_t *message)
 #endif
 #ifdef MTK_KEYPAD_ENABLE
 		case MESSAGE_ID_KEYPAD_EVENT:
-			keypad_event_handle(message->param1);
-			break;
-#endif
-#if 0 //def MTK_POWERKEY_ENABLE
-		case MESSAGE_ID_POWERKEY_EVENT:
-			powerkey_event_handle();
+			keypad_event_handle( (uint8_t)message->param1);
 			break;
 #endif
         default:

@@ -244,59 +244,6 @@ static void main_screen_keypad_event_handler(hal_keypad_event_t* keypad_event,vo
 	tui_main_screen_draw();
 
 }
-/*****************************************************************************
- * FUNCTION
- *  main_screen_pen_event_handler
- * DESCRIPTION
- *  Process pen event
- * PARAMETERS
- *  touch_event     [in]
- *  user_data       [in]
- * RETURNS
- *  void
- *****************************************************************************/
-static void main_screen_pen_event_handler(touch_event_struct_t* touch_event, void* user_data)
-{
-    static int32_t item_down_index = -1;
-    int32_t temp_index;
-	GRAPHICLOG("[chenchen pen_event_handler ");
-
-    temp_index = main_screen_get_index(touch_event->position.x, touch_event->position.y);
-    if (touch_event->type == TOUCH_EVENT_DOWN) {
-        item_down_index = temp_index;
-        return;
-    } else if (touch_event->type == TOUCH_EVENT_UP) {
-        if (item_down_index == -1) {
-            return;
-        }
-    }
-
-    if (item_down_index != temp_index) {
-        item_down_index = -1;
-        return;
-    }
-	
-
-    item_down_index = -1;
-
-    switch (temp_index) {
-        case -1:
-            return;
-        case -2:
-            main_screen_scroll_to_prevoius_page();
-            break;
-        case -3:
-            main_screen_scroll_to_next_page();
-            break;
-        default:
-            curr_event_handler = demo_item[temp_index].event_handle_f;
-            if (demo_item[temp_index].show_screen_f) {
-                demo_item[temp_index].show_screen_f();
-            }
-            return;
-    }
-//    main_screen_draw();
-}
 
 /*****************************************************************************
  * FUNCTION
@@ -843,8 +790,8 @@ void show_main_screen()
     if (!is_init) {
         is_init = 1;
         bsp_lcd_init(0x0000);
-        bsp_backlight_init();
-		bsp_backlight_init_display_pwm();
+//      bsp_backlight_init();
+//		bsp_backlight_init_display_pwm();
         bsp_lcd_get_parameter(LCM_IOCTRL_QUERY__LCM_HEIGHT, &LCD_CURR_HEIGHT);
         bsp_lcd_get_parameter(LCM_IOCTRL_QUERY__LCM_WIDTH, &LCD_CURR_WIDTH);
     }

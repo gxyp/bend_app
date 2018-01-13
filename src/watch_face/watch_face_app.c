@@ -56,8 +56,6 @@
 #include "gdi.h"
 #include "battery_management.h"
 #include "timers.h"
-#include "hal_display_pwm.h"
-#include "hal_display_pwm_internal.h"
 #include "task.h"
 
 
@@ -94,7 +92,7 @@ ATTR_RWDATA_IN_NONCACHED_RAM_4BYTE_ALIGN uint8_t g_wf_time_update_area_img[IMG_U
 static uint8_t g_wf_witdh_offset;
 
 TimerHandle_t vPopupTimer = NULL;
-TimerHandle_t vBacklightTimer = NULL;
+TimerHandle_t vEnterSleepTimer = NULL;
 
 uint32_t g_wf_index_color_table[16] = 
 {
@@ -359,14 +357,11 @@ void wf_app_init(void)
 
 }
 
-void vBacklightTimerCallback( TimerHandle_t xTimer )
+void vEnterSleepTimerCallback( TimerHandle_t xTimer )
 {
 //	bsp_backlight_deinit();
 	g_wf_is_lcd_need_init = true;
 
-    hal_display_pwm_deinit();
-	hal_display_pwm_init(HAL_DISPLAY_PWM_CLOCK_26MHZ);
-	hal_display_pwm_set_duty(0);
 	bsp_lcd_enter_idle();
 	/* If the macro is enabled, Watch face app will power off CTP to reduce leakage. 
 	 * User can close it for watch face app. */
@@ -376,26 +371,26 @@ void vBacklightTimerCallback( TimerHandle_t xTimer )
 
 }
 
-void backlight_timer_stop(void)
+void EnterSleep_timer_stop(void)
 {
-	if (vBacklightTimer && (xTimerIsTimerActive(vBacklightTimer) != pdFALSE)){
-		xTimerStop(vBacklightTimer, 0);
+	if (vEnterSleepTimer && (xTimerIsTimerActive(vEnterSleepTimer) != pdFALSE)){
+		xTimerStop(vEnterSleepTimer, 0);
 	}
 }
 
-void backlight_timer_init(uint32_t time)
+void EnterSleep_timer_init(uint32_t time)
 {
-    if (vBacklightTimer && (xTimerIsTimerActive(vBacklightTimer) != pdFALSE)) {
-        xTimerStop(vBacklightTimer, 0);
+    if (vEnterSleepTimer && (xTimerIsTimerActive(vEnterSleepTimer) != pdFALSE)) {
+        xTimerStop(vEnterSleepTimer, 0);
     } else {
-		vBacklightTimer = xTimerCreate( "vBacklightTimer",           // Just a text name, not used by the kernel.
+		vEnterSleepTimer = xTimerCreate( "vEnterSleepTimer",           // Just a text name, not used by the kernel.
                                       ( time*1000 / portTICK_PERIOD_MS), // The timer period in ticks.
                                       pdFALSE,                    // The timer is a one-shot timer.
                                       0,                          // The id is not used by the callback so can take any value.
-                                      vBacklightTimerCallback     // The callback function that switches the LCD back-light off.
+                                      vEnterSleepTimerCallback     // The callback function that switches the LCD back-light off.
                                    );
     }
-	xTimerStart(vBacklightTimer, 0);
+	xTimerStart(vEnterSleepTimer, 0);
 }
 
 
@@ -454,117 +449,37 @@ static void wf_need_lcd_init(void)
 {
 	hal_sleep_manager_lock_sleep(sdkdemo_sleep_handle);
 
-	hal_display_pwm_deinit();
-	hal_display_pwm_init(HAL_DISPLAY_PWM_CLOCK_26MHZ);
-	hal_display_pwm_set_duty(20);
 	bsp_lcd_exit_idle();
 	//bsp_backlight_init();
 }
 
-static void wf_need_bl_on(void)
-{
-	hal_display_pwm_deinit();
-	hal_display_pwm_init(HAL_DISPLAY_PWM_CLOCK_26MHZ);
-	hal_display_pwm_set_duty(20);
-}
-
-static void wf_app_powerkey_event_handler(hal_keypad_powerkey_event_t* powerkey_event,void* user_data)
-{
-	LOG_I(common, "chenchen wf_app_powerkey  %d",powerkey_event->key_data);
-
-	if (powerkey_event->state == 0){
-		return;
-	} else if (powerkey_event->state == 1){
-		if (g_wf_is_lcd_need_init){
-			g_wf_is_lcd_need_init = false;
-			wf_need_lcd_init();
-		} else {
-			wf_need_bl_on();
-		}
-		if( xTimerReset( vBacklightTimer, 100 ) != pdPASS ) {
-			LOG_I(common, "chenchen wf powerkey_xTimerReset fail");
-		}
-		LOG_I(common, "chenchen powerkey  %d",powerkey_event->key_data);
-	} else if (powerkey_event->state == 2){
-			hal_rtc_set_time_notification_period(HAL_RTC_TIME_NOTIFICATION_NONE);
-			hal_sleep_manager_enter_power_off_mode();
-
-	}
-}
-
 static void wf_app_keypad_event_handler(hal_keypad_event_t* keypad_event,void* user_data)
 {
-    static int32_t temp_index;
-/*
-	keyvalue
-	13 0xd ---enter --- DEVICE_KEY_ENTER
-	14 0xe ---back  --- DEVICE_KEY_BACK
-	17 0x11---up  --- DEVICE_KEY_UP
-	18 0x12---down  --- DEVICE_KEY_DOWN
-                        DEVICE_KEY_POWER
-*/
+    uint8_t key_data = keypad_event->key_data;
+    LOG_I(common,"water face keypad event %d", key_data);
 
-	LOG_I(common, "chenchen wf_app_keypad handler %d",keypad_event->key_data);
 	if (g_wf_is_lcd_need_init){
 		g_wf_is_lcd_need_init = false;
 		wf_need_lcd_init();
-	} else {
-		wf_need_bl_on();
-	}
+	} 
 
-	if( xTimerReset( vBacklightTimer, 100 ) != pdPASS ) {
+/*
+	if( xTimerReset( vEnterSleepTimer, 100 ) != pdPASS ) {
 		LOG_I(common, "chenchen wf_xTimerReset fail");
 	}
 	vTaskDelay(100);
+*/
 
-	temp_index = 0;
-	if (keypad_event->state == 1){
-		return;
-	} else {
-		if (keypad_event->key_data == DEVICE_KEY_ENTER && keypad_event->state == 0){
-			temp_index = 1;
-		} else if (keypad_event->key_data == DEVICE_KEY_BACK && keypad_event->state == 0){
-			temp_index = 2;
-		} else if (keypad_event->key_data == DEVICE_KEY_UP && keypad_event->state == 0){
-			temp_index = 3;
-		} else if (keypad_event->key_data == DEVICE_KEY_DOWN && keypad_event->state == 0){
-			temp_index = 4;
-		}
-	}
-	
-	switch (temp_index){
-		case 1:
-			g_wf_is_show_screen = false;
-			pop_timer_stop();
-			backlight_timer_stop();
-			show_main_screen();
-			return;
-		case 2:
-			g_wf_is_show_screen = false;
-			pop_timer_stop();
-			backlight_timer_stop();
-			show_main_screen();
+    if (vPopupTimer && (xTimerIsTimerActive(vPopupTimer) != pdFALSE) && DEVICE_KEY_ENTER == key_data) {
+        // go to main screen
+        g_wf_is_show_screen = false;
+        pop_timer_stop();
+        show_main_screen();
+    } else {
+        wf_show_pop_image();
+        pop_timer_init(5);
 
-			return;
-		case 3:
-			wf_show_pop_image();
-			pop_timer_init(5);
-
-			break;
-		case 4:
-			wf_show_pop_image();
-			pop_timer_init(5);
-
-			break;
-		default:
-            break;
-		}
-//	g_wf_is_show_screen = false;
-//	bsp_lcd_clear_screen(0);
-//    show_main_screen();
-
-
-
+    }
 }
 
 //add by chenchen
@@ -917,7 +832,7 @@ static void wf_show_test_image(void)
 		gdi_image_draw_by_id(140, 200, IMAGE_ID_IDLE_GPS_BMP);
 
 		gdi_lcd_update_screen(0, 0, LCD_WIDTH, LCD_HEIGHT);
-		}
+	}
 }
 
 void wf_app_task_enable_show(void)
@@ -928,8 +843,9 @@ void wf_app_task_enable_show(void)
 
 
     g_wf_is_show_screen = true;
-    g_wf_is_task_need_delete = true;
+    g_wf_is_task_need_delete = false;         // will delete all task except watch face
 	g_wf_is_lcd_need_init = false;
+
     xTaskCreate(wf_app_task, WF_APP_TASK_NAME, WF_APP_TASK_STACKSIZE/(( uint32_t )sizeof( StackType_t )), NULL, WF_APP_TASK_PRIO, NULL);
 }
 
@@ -942,21 +858,20 @@ void wf_app_task(void *arg)
     wf_app_rtc_init();
     while(1) { /*receive message/semphore from RTC LISR*/
     	   if ( xQueueReceive(g_wtf_queue_handle, &event, portMAX_DELAY) == pdPASS) {
-               //LOG_I(common,"app task receive event %d", event);
+               LOG_I(common,"app task receive event %d", event);
             if (event == WF_EVENT_RTC) {
                 if (g_wf_is_task_need_delete == true) {
-#if 0
 					bsp_backlight_deinit();
                     bsp_lcd_enter_idle();
+
 /* If the macro is enabled, Watch face app will power off CTP to reduce leakage. 
  * User can close it for watch face app. */
 #ifdef MTK_CTP_ENABLE
                     bsp_ctp_power_on(false);
 #endif
-                    //task_def_delete_wo_curr_task();
+//                    task_def_delete_wo_curr_task();        // will delete all task except watch face
 				    hal_sleep_manager_unlock_sleep(sdkdemo_sleep_handle);
-#endif
-					backlight_timer_init(10);
+//					EnterSleep_timer_init(10);
 
                     g_wf_is_task_need_delete  =  false;
 					//g_wf_is_lcd_need_init = true;
@@ -964,6 +879,7 @@ void wf_app_task(void *arg)
 			//	wf_show_test_image();
                 hal_rtc_get_time(&time);
                 wf_app_update_time(&time);
+
             }
     	   }
       
