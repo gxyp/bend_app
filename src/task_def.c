@@ -133,9 +133,9 @@ static const tasks_list_t tasks_list[] = {
 #endif
 
 #ifdef WATCH_APP_DEMO
-    //{ wf_app_task,          WF_APP_TASK_NAME,      WF_APP_TASK_STACKSIZE/(( uint32_t )sizeof( StackType_t )),     NULL,   WF_APP_TASK_PRIO },
+    { wf_app_task,          WF_APP_TASK_NAME,      WF_APP_TASK_STACKSIZE/(( uint32_t )sizeof( StackType_t )),     NULL,   WF_APP_TASK_PRIO },
 #endif
-
+ 
 #ifdef BT_SINK_DEMO
     { bsp_bt_codec_task_main,    BT_CODEC_TASK_NAME,     BT_CODEC_TASK_STACKSIZE/(( uint32_t )sizeof( StackType_t )),    NULL,   BT_CODEC_TASK_PRIO },
     { am_task_main,          AM_TASK_NAME,           AM_TASK_STACKSIZE/(( uint32_t )sizeof( StackType_t )),     NULL,   AM_TASK_PRIO },

@@ -158,10 +158,6 @@ static void main_need_lcd_init(void)
 {
 
 	hal_sleep_manager_lock_sleep(sdkdemo_sleep_handle);
-
-	hal_display_pwm_deinit();
-	hal_display_pwm_init(HAL_DISPLAY_PWM_CLOCK_26MHZ);
-	hal_display_pwm_set_duty(20);
 	bsp_lcd_exit_idle();
 
 }
@@ -191,9 +187,9 @@ static void main_screen_keypad_event_handler(hal_keypad_event_t* keypad_event,vo
 
 
 	if (keypad_event->key_data == DEVICE_KEY_ENTER && keypad_event->state == 0){
-		temp_index = 1;
+		temp_index = 1;   // Enter
 	} else if (keypad_event->key_data == DEVICE_KEY_BACK && keypad_event->state == 0){
-		temp_index = -1;
+		temp_index = -1;  // back
 	} else if (keypad_event->key_data == DEVICE_KEY_UP && keypad_event->state == 0){
         GRAPHICLOG("detect UP??? maybe wrong in here");
 		temp_focus = main_screen_cntx.focus_point_index+1;
@@ -214,10 +210,10 @@ static void main_screen_keypad_event_handler(hal_keypad_event_t* keypad_event,vo
 	}
 
 	switch (temp_index){
-		case -2:
+		case -2:     // for previous page, we do not use it
 			main_screen_scroll_to_prevoius_page();
 			break;
-		case -3:
+		case -3:     // for next page, we do not use it
 			main_screen_scroll_to_next_page();
 			break;
 		case -1:
@@ -226,7 +222,6 @@ static void main_screen_keypad_event_handler(hal_keypad_event_t* keypad_event,vo
 			if (demo_item[3].show_screen_f) {
 				demo_item[3].show_screen_f();
 			}
-
 			return;
 
 		case 1:
@@ -780,9 +775,9 @@ static int32_t main_screen_get_index(int32_t x, int32_t y)
  *****************************************************************************/
 void show_main_screen()
 {
-    static int32_t is_init;
+    static int32_t is_init = 0;
 //	static int32_t temp_index;
-	static int32_t is_wf_screen;
+	static int32_t is_show_logo_screen;
     curr_event_handler = main_screen_event_handle;
 //    demo_ui_register_touch_event_callback(main_screen_pen_event_handler, NULL);
 	demo_ui_register_keypad_event_callback(main_screen_keypad_event_handler, NULL);
@@ -792,6 +787,10 @@ void show_main_screen()
         bsp_lcd_init(0x0000);
 //      bsp_backlight_init();
 //		bsp_backlight_init_display_pwm();
+        hal_display_pwm_deinit();
+        hal_display_pwm_init(HAL_DISPLAY_PWM_CLOCK_26MHZ);
+        hal_display_pwm_set_duty(20);
+
         bsp_lcd_get_parameter(LCM_IOCTRL_QUERY__LCM_HEIGHT, &LCD_CURR_HEIGHT);
         bsp_lcd_get_parameter(LCM_IOCTRL_QUERY__LCM_WIDTH, &LCD_CURR_WIDTH);
     }
@@ -801,8 +800,8 @@ void show_main_screen()
 
     main_screen_cntx_init();
 	
-    if (!is_wf_screen) {
-		is_wf_screen = 1;
+    if (!is_show_logo_screen) {
+		is_show_logo_screen = 1;
 		gdi_draw_filled_rectangle(0,0,240 * RESIZE_RATE - 1,240 * RESIZE_RATE - 1,0);
 		gdi_image_draw_by_id(0, 0, IMAGE_ID_ZBG_06_BMP); //logo by chen
 		gdi_lcd_update_screen(0, 0, 240 * RESIZE_RATE - 1, 240 * RESIZE_RATE - 1);
@@ -813,15 +812,5 @@ void show_main_screen()
 	tui_main_screen_draw();
 	show_watchface_timer_init(10);
 
-/*
-	if (!is_wf_screen) {
-//	curr_event_handler = demo_item[4].event_handle_f;
-		is_wf_screen = 1;
-		if (demo_item[3].show_screen_f) {
-	     	demo_item[3].show_screen_f();
-			GRAPHICLOG("show_main_wf");
-	 	}
-	}
-*/
 }
 

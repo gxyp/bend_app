@@ -98,14 +98,13 @@ void user_keypad_callback (void *user_data)
 void demo_ui_keypad_callback_func(sct_key_event_t event, uint8_t key_data, void *user_data)
 {
     GRAPHICLOG("[ui_demo]sct_key_event %d, key_data %d",event,key_data);
-    // Need add backlight control in here
 
-    // Send message to demo ui task
+    // Enable backlight and backlight_timer then send message to demo ui task
     if ( SCT_KEY_RELEASE == event ) {
         hal_display_pwm_deinit();
         hal_display_pwm_init(HAL_DISPLAY_PWM_CLOCK_26MHZ);
         hal_display_pwm_set_duty(20);
-        backlight_timer_init(10);     
+        backlight_timer_init(10);      // backlight timeout setting to 10 second
         ui_send_event(MESSAGE_ID_KEYPAD_EVENT, (int32_t)key_data, NULL);
     }
 
@@ -142,7 +141,7 @@ void keypad_event_handle(uint8_t key_data)
 
 void vbacklightTimerCallback( TimerHandle_t xTimer )
 {
-//  bsp_backlight_deinit();
+//    bsp_backlight_deinit();
     hal_display_pwm_deinit();
     hal_display_pwm_init(HAL_DISPLAY_PWM_CLOCK_26MHZ);
     hal_display_pwm_set_duty(0);

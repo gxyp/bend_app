@@ -837,16 +837,18 @@ static void wf_show_test_image(void)
 
 void wf_app_task_enable_show(void)
 {
+    hal_rtc_time_t time;
     bsp_lcd_clear_screen(0);
 	demo_ui_register_keypad_event_callback(wf_app_keypad_event_handler, NULL);
 //	demo_ui_register_powerkey_event_callback(wf_app_powerkey_event_handler, NULL);
-
 
     g_wf_is_show_screen = true;
     g_wf_is_task_need_delete = false;         // will delete all task except watch face
 	g_wf_is_lcd_need_init = false;
 
-    xTaskCreate(wf_app_task, WF_APP_TASK_NAME, WF_APP_TASK_STACKSIZE/(( uint32_t )sizeof( StackType_t )), NULL, WF_APP_TASK_PRIO, NULL);
+    hal_rtc_get_time(&time);
+    wf_app_update_time(&time);
+//    xTaskCreate(wf_app_task, WF_APP_TASK_NAME, WF_APP_TASK_STACKSIZE/(( uint32_t )sizeof( StackType_t )), NULL, WF_APP_TASK_PRIO, NULL);
 }
 
 //extern uint8_t sdkdemo_sleep_handle;
@@ -861,7 +863,7 @@ void wf_app_task(void *arg)
                LOG_I(common,"app task receive event %d", event);
             if (event == WF_EVENT_RTC) {
                 if (g_wf_is_task_need_delete == true) {
-					bsp_backlight_deinit();
+//					bsp_backlight_deinit();
                     bsp_lcd_enter_idle();
 
 /* If the macro is enabled, Watch face app will power off CTP to reduce leakage. 
