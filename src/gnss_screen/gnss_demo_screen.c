@@ -394,15 +394,22 @@ static void gnss_pen_event_handler_001(touch_event_struct_t* pen_event, void* us
 static void gnss_keypad_event_handler(hal_keypad_event_t* keypad_event,void* user_data)
 {
 	static int32_t temp_index;
-
+/*
+    keyvalue
+    13 0xd ---enter --- DEVICE_KEY_ENTER
+    14 0xe ---back  --- DEVICE_KEY_BACK
+    17 0x11---up  --- DEVICE_KEY_UP(0x14)
+    18 0x12---down  --- DEVICE_KEY_DOWN(0x15)   // gaochao up, down was not correct
+                        DEVICE_KEY_POWER
+*/
 	LOG_E(common, "chenchen gnss_app_keypad handler %d",keypad_event->key_data);
 
-	if (keypad_event->key_data == 0xe && keypad_event->state == 0){
-                gnss_demo_app_stop();
-                gnss_demo_app_destroy(gnss_task_handle);
-				show_traing_type_screen();
+	if (keypad_event->key_data == DEVICE_KEY_BACK && keypad_event->state == 0){
+        gnss_demo_app_stop();
+        gnss_demo_app_destroy(gnss_task_handle);
+		show_traing_type_screen();
 //                show_main_screen();
-		}
+	}
 }
 
 uint8_t gnss_get_week(uint32_t y, uint8_t m, uint8_t d)
