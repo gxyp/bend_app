@@ -186,6 +186,7 @@ APP_FILES = $(APP_PATH_SRC)/main.c \
             $(APP_PATH_SRC)/task_def.c \
             $(APP_PATH_SRC)/system_mt2523.c \
             $(APP_PATH_SRC)/bt_init.c \
+            $(APP_PATH_SRC)/bend_config.c \
             $(APP_PATH_SRC)/custom_image_data_resource.c \
             $(APP_PATH_SRC)/custom_image_map.c \
             $(APP_PATH_SRC)/custom_image_resource.c \

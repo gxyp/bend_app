@@ -61,6 +61,8 @@
 
 #include "ble_app_common.h"
 
+#include "bend_config.h"
+
 #ifdef FOTA_FS_ENABLE
 /* file system header */
 #include "ff.h"
@@ -110,6 +112,7 @@ log_create_module(fota_dl_m, PRINT_LEVEL_INFO);
 
 
 uint8_t sdkdemo_sleep_handle;
+TimeOut_Time_struct_t g_TimeOut_Time;
 
 /* Private functions ---------------------------------------------------------*/
 
@@ -458,12 +461,14 @@ int main(void)
 #if defined(MTK_PORT_SERVICE_ENABLE)
     syslog_port_service_init();
 #endif
-
+    
     /* system log initialization. */
     log_init(syslog_config_save, syslog_config_load, syslog_control_blocks);
 	
 	bt_io_uart_init_ex(HAL_UART_1);
     nvdm_init();
+    TimeOutTime_config_load(&g_TimeOut_Time);
+
     LOG_I(fota_dl_m, "start to create task.\n");
 
     /* As for generic HAL init APIs like: hal_uart_init(), hal_gpio_init() and hal_spi_master_init() etc,

@@ -46,6 +46,7 @@
 #include "hal_display_pwm_internal.h"
 #include "timers.h" 
 
+#include "bend_config.h"  // add by gaochao
 
 //add by chenchen // change by gaochao
 #include "sct_key_event.h"
@@ -61,6 +62,8 @@ typedef struct ui_task_message_struct {
     int param1;
     void* param2;
 } ui_task_message_struct_t;
+
+extern TimeOut_Time_struct_t g_TimeOut_Time;
 
 static struct {
     QueueHandle_t event_queue;
@@ -113,8 +116,8 @@ void demo_ui_keypad_callback_func(sct_key_event_t event, uint8_t key_data, void 
     if ( SCT_KEY_RELEASE == event ) {
         hal_display_pwm_deinit();
         hal_display_pwm_init(HAL_DISPLAY_PWM_CLOCK_26MHZ);
-        hal_display_pwm_set_duty(20);
-        backlight_timer_init(8);      // backlight timeout setting to 8 second
+        hal_display_pwm_set_duty(g_TimeOut_Time.idle_BackWF_Time);
+        backlight_timer_init(g_TimeOut_Time.backlight_Time);      // backlight timeout setting to 8 second
         ui_send_event(MESSAGE_ID_KEYPAD_EVENT, (int32_t)key_data, NULL);
     }
 
@@ -503,7 +506,7 @@ void ui_task_main(void*arg)
     arg = arg;
     ui_task_cntx.event_queue = xQueueCreate(UI_TASK_QUEUE_SIZE , sizeof( ui_task_message_struct_t ) );
     GRAPHICLOG("ui_task_main");
-    backlight_timer_init(10);
+    backlight_timer_init(g_TimeOut_Time.poweron_BackWF_Time);
     show_main_screen();
     while (1) {
         if (xQueueReceive(ui_task_cntx.event_queue, &queue_item, portMAX_DELAY)) {
