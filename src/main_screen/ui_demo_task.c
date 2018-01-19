@@ -83,6 +83,10 @@ static int32_t ui_send_event_from_isr(message_id_enum event_id, int32_t param1, 
 
 log_create_module(GRAPHIC_TAG, PRINT_LEVEL_INFO);
 
+void backwfScreen_timer_init(uint32_t time);
+void backwfScreen_timer_stop(void);
+void wf_app_task_enable_show(void);
+
 //add by chenchen start 
 #ifdef MTK_KEYPAD_ENABLE
 
@@ -107,6 +111,8 @@ void user_keypad_callback (void *user_data)
      hal_keypad_get_key(&keypad_event);
 }
 */
+void backlight_timer_init(uint32_t time);
+
 // callback function registered inside sct_key module
 void demo_ui_keypad_callback_func(sct_key_event_t event, uint8_t key_data, void *user_data)
 {
@@ -150,6 +156,13 @@ void keypad_event_handle(uint8_t key_data)
 }
 #endif
 
+void backlight_timer_stop(void)
+{
+    if (vbacklightTimer && (xTimerIsTimerActive(vbacklightTimer) != pdFALSE)){
+        xTimerStop(vbacklightTimer, 0);
+    }
+}
+
 void vbacklightTimerCallback( TimerHandle_t xTimer )
 {
 //    bsp_backlight_deinit();
@@ -158,13 +171,6 @@ void vbacklightTimerCallback( TimerHandle_t xTimer )
     hal_display_pwm_set_duty(0);
 
     backlight_timer_stop();
-}
-
-void backlight_timer_stop(void)
-{
-    if (vbacklightTimer && (xTimerIsTimerActive(vbacklightTimer) != pdFALSE)){
-        xTimerStop(vbacklightTimer, 0);
-    }
 }
 
 void backlight_timer_init(uint32_t time)

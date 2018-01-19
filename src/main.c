@@ -113,6 +113,7 @@ log_create_module(fota_dl_m, PRINT_LEVEL_INFO);
 
 uint8_t sdkdemo_sleep_handle;
 TimeOut_Time_struct_t g_TimeOut_Time;
+Bend_User_struct_t g_Bend_User;
 
 /* Private functions ---------------------------------------------------------*/
 
@@ -468,8 +469,10 @@ int main(void)
 	bt_io_uart_init_ex(HAL_UART_1);
     nvdm_init();
     TimeOutTime_config_load(&g_TimeOut_Time);
+    BendUser_config_load(&g_Bend_User);
 
     LOG_I(fota_dl_m, "start to create task.\n");
+
 
     /* As for generic HAL init APIs like: hal_uart_init(), hal_gpio_init() and hal_spi_master_init() etc,
      * user can call them when they need, which means user can call them here or in user task at runtime.
