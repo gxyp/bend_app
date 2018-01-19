@@ -174,7 +174,7 @@ static void main_screen_keypad_event_handler(hal_keypad_event_t* keypad_event,vo
 		temp_index = 1;   // Enter
 	} else if (keypad_event->key_data == DEVICE_KEY_BACK && keypad_event->state == 0){
 		temp_index = -1;  // back
-	} else if (keypad_event->key_data == DEVICE_KEY_UP && keypad_event->state == 0){
+	} else if (keypad_event->key_data == DEVICE_KEY_DOWN && keypad_event->state == 0){
         GRAPHICLOG("detect UP??? maybe wrong in here");
 		temp_focus = main_screen_cntx.focus_point_index+1;
 		max_item_num = main_screen_cntx.total_item_num;
@@ -183,7 +183,7 @@ static void main_screen_keypad_event_handler(hal_keypad_event_t* keypad_event,vo
 		if (main_screen_cntx.focus_point_index < 0)
 			main_screen_cntx.focus_point_index = main_screen_cntx.total_item_num -1;
 		
-	} else if (keypad_event->key_data == DEVICE_KEY_DOWN && keypad_event->state == 0){
+	} else if (keypad_event->key_data == DEVICE_KEY_UP && keypad_event->state == 0){
         GRAPHICLOG("detect DOWN??? maybe wrong in here");
 		temp_focus = main_screen_cntx.focus_point_index-1;
 		max_item_num = main_screen_cntx.total_item_num;

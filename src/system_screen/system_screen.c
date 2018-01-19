@@ -328,7 +328,7 @@ static void system_screen_keypad_event_handler(hal_keypad_event_t* keypad_event,
 			temp_index = 1;
 		} else if (keypad_event->key_data == DEVICE_KEY_BACK && keypad_event->state == 0){
 			temp_index = 2;
-		} else if (keypad_event->key_data == DEVICE_KEY_UP && keypad_event->state == 0){
+		} else if (keypad_event->key_data == DEVICE_KEY_DOWN && keypad_event->state == 0){
 			temp_focus = system_screen_cntx.focus_point_index+1;
 			max_item_num = system_screen_cntx.total_item_num;
 			system_screen_cntx.focus_point_index = temp_focus%max_item_num;
@@ -336,7 +336,7 @@ static void system_screen_keypad_event_handler(hal_keypad_event_t* keypad_event,
 			if (system_screen_cntx.focus_point_index < 0)
 				system_screen_cntx.focus_point_index = 0;
 			
-		} else if (keypad_event->key_data == DEVICE_KEY_DOWN && keypad_event->state == 0){
+		} else if (keypad_event->key_data == DEVICE_KEY_UP && keypad_event->state == 0){
 			temp_focus = system_screen_cntx.focus_point_index-1;
 			max_item_num = system_screen_cntx.total_item_num;
 			system_screen_cntx.focus_point_index = temp_focus%max_item_num;
