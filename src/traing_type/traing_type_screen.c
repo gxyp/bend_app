@@ -350,7 +350,6 @@ static void traing_screen_keypad_event_handler(hal_keypad_event_t* keypad_event,
                         DEVICE_KEY_POWER
 */
 
-		GRAPHICLOG("[chenchen traing_screen_keypad_event_handler key state=%d, position=%d\r\n", (int)keypad_event->state, (int)keypad_event->key_data);
 /*
 		if( xTimerReset( vTraingtypeWatchfaceTimer, 100 ) != pdPASS ) {
 		LOG_I(common, "chenchen main show traingtype timer fail");
@@ -364,7 +363,7 @@ static void traing_screen_keypad_event_handler(hal_keypad_event_t* keypad_event,
 			temp_focus = traing_type_screen_cntx.focus_point_index+1;
 			max_item_num = traing_type_screen_cntx.total_item_num;
 			traing_type_screen_cntx.focus_point_index = temp_focus%max_item_num;
-			GRAPHICLOG("[chenchen[get key]main_screen_cntx.focus_point_index=%d,\r\n", traing_type_screen_cntx.focus_point_index);
+//			GRAPHICLOG("[chenchen[get key]main_screen_cntx.focus_point_index=%d,\r\n", traing_type_screen_cntx.focus_point_index);
 			if (traing_type_screen_cntx.focus_point_index < 0)
 				traing_type_screen_cntx.focus_point_index = 0;
 			

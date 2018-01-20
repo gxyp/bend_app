@@ -78,9 +78,10 @@ typedef struct touch_event_struct {
 #define CONFIG_MESSAGE_ID_ENUM
 typedef enum{
 	MESSAGE_ID_KEYPAD_EVENT,
-	MESSAGE_ID_POWERKEY_EVENT,
+//	MESSAGE_ID_POWERKEY_EVENT,
 	MESSAGE_ID_PEN_EVENT,
     MESSAGE_ID_BACKWF_EVENT,
+    MESSAGE_ID_HR_EVENT,
 #include "screen_config.h"
 } message_id_enum;
 #undef CONFIG_MESSAGE_ID_ENUM

@@ -98,7 +98,7 @@ void demo_ui_register_keypad_event_callback(keypad_event_proc_func proc_func, bo
     ui_task_cntx.user_data = user_data;
 
     if (needBackWF) {
-        backwfScreen_timer_init(15);
+        backwfScreen_timer_init(g_TimeOut_Time.idle_BackWF_Time);
     } else {
         backwfScreen_timer_stop();
     }
@@ -116,13 +116,13 @@ void backlight_timer_init(uint32_t time);
 // callback function registered inside sct_key module
 void demo_ui_keypad_callback_func(sct_key_event_t event, uint8_t key_data, void *user_data)
 {
-    GRAPHICLOG("[ui_demo]sct_key_event %d, key_data %d",event,key_data);
+//    GRAPHICLOG("[ui_demo]sct_key_event %d, key_data %d",event,key_data);
 
     // Enable backlight and backlight_timer then send message to demo ui task
     if ( SCT_KEY_RELEASE == event ) {
         hal_display_pwm_deinit();
         hal_display_pwm_init(HAL_DISPLAY_PWM_CLOCK_26MHZ);
-        hal_display_pwm_set_duty(g_TimeOut_Time.idle_BackWF_Time);
+        hal_display_pwm_set_duty(20);
         backlight_timer_init(g_TimeOut_Time.backlight_Time);      // backlight timeout setting to 8 second
         ui_send_event(MESSAGE_ID_KEYPAD_EVENT, (int32_t)key_data, NULL);
     }
@@ -146,11 +146,10 @@ void keypad_event_handle(uint8_t key_data)
     keypad_event.key_data = key_data;
 
     if (ui_task_cntx.Is_Need_Back_wf_Screen) {
-        backwfScreen_timer_init(20);
+        backwfScreen_timer_init(g_TimeOut_Time.idle_BackWF_Time);
     }
     
     if (ui_task_cntx.keypad_event_callback_f) {
-        GRAPHICLOG("gaochao keypad event handle, data:%x", keypad_event.key_data);
         ui_task_cntx.keypad_event_callback_f(&keypad_event, ui_task_cntx.user_data);
    	}
 }

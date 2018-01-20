@@ -418,7 +418,6 @@ static void wf_need_lcd_init(void)
 static void wf_app_keypad_event_handler(hal_keypad_event_t* keypad_event,void* user_data)
 {
     uint8_t key_data = keypad_event->key_data;
-    LOG_I(common,"water face keypad event %d", key_data);
 
 	if (g_wf_is_lcd_need_init){
 		g_wf_is_lcd_need_init = false;

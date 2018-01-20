@@ -165,7 +165,7 @@ static void sensor_pen_event_handler(touch_event_struct_t* pen_event, void* user
 
               #ifdef FUSION_BLOOD_PRESSURE_USE
                 s_hr_bpm_val = 0; /* exclusive application of B.P. and heart rate */
-                s_bp_measure_status = 2;
+                s_bp_measure_status = 1; 
                 SENSOR_DEMO_LOGI("press B.P.\r\n");
                 enable_bp();
               #endif
@@ -231,6 +231,10 @@ static void sensor_screen_keypad_event_handler(hal_keypad_event_t* keypad_event,
 
 void sensor_event_handler(message_id_enum event_id, int32_t param1, void* param2)
 {
+    if (MESSAGE_ID_HR_EVENT == event_id && s_hr_bpm_val != param1) {
+        s_hr_bpm_val = param1;
+        show_sensor_screen();
+    }
 }
 
 static void show_sensor_screen(void)
@@ -281,7 +285,7 @@ static void show_sensor_screen(void)
     }
 
 //    demo_ui_register_touch_event_callback(sensor_pen_event_handler, NULL);
-	demo_ui_register_keypad_event_callback(sensor_screen_keypad_event_handler, false, NULL);
+//	demo_ui_register_keypad_event_callback(sensor_screen_keypad_event_handler, false, NULL);
     gdi_draw_filled_rectangle(0,0,sensor_screen_cntx.width-1,sensor_screen_cntx.height-1, sensor_screen_cntx.bg_color);
 
     gdi_font_engine_size_t font = GDI_FONT_ENGINE_FONT_MEDIUM;
@@ -508,30 +512,37 @@ void show_sensor_ready_to_connect_screen(void)
 {
     SENSOR_DEMO_LOGI("enable_all_sensors\r\n");
     enable_all_sensors();
+    demo_ui_register_keypad_event_callback(sensor_screen_keypad_event_handler, false, NULL);
 #ifdef FUSION_HEART_RATE_VARIABILITY_USE
 	  s_hrv_measure_status = 2;
 	  SENSOR_DEMO_LOGI("press HRV\r\n");
 	  enable_hrv();
 #endif
 	
-#ifdef FUSION_BLOOD_PRESSURE_USE
-	  s_hr_bpm_val = 0; /* exclusive application of B.P. and heart rate */
-	  s_bp_measure_status = 2;
-	  SENSOR_DEMO_LOGI("press B.P.\r\n");
-	  enable_bp();
+#ifdef FUSION_BLOOD_PRESSURE_USE   // Here enable BP
+//	  s_hr_bpm_val = 0; /* exclusive application of B.P. and heart rate */
+//	  s_bp_measure_status = 2;  /* 1: init , 2: measuring , 3: measure done */  
+//	  SENSOR_DEMO_LOGI("press B.P.\r\n");
+//	  enable_bp();
 #endif
 
     SENSOR_DEMO_LOGI("show_sensor_ready_to_connect_screen\r\n");
     show_sensor_screen();
 }
 
+
 void update_hr_data(int32_t bpm)
 {
+    ui_send_event(MESSAGE_ID_HR_EVENT, bpm, NULL);
+/*
     if (s_hr_bpm_val != bpm) {
         s_hr_bpm_val = bpm;
-        show_sensor_screen();
+        ui_send_event(MESSAGE_ID_HR_EVENT,bpm,NULL);
+//        show_sensor_screen();
     }
+*/    
 }
+
 
 void update_hrv_data(int32_t sdnn,int32_t lf,int32_t hf,int32_t lfhf)
 {
