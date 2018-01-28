@@ -97,6 +97,19 @@ static const list_item_struct_t demo_item[] =
 #include "screen_config.h"
 };
 
+static const wlist_item_struct_t wdemo_item[] =
+{
+    
+   {show_traing_type_screen, traing_type_event_handler, L"训练类型"},  
+   {show_system_screen, system_screen_event_handler, L"系统"},
+   {show_settings_screen, settings_screen_event_handler, L"设置"},
+   {wf_app_task_enable_show, wf_event_handler, L"时间显示"},
+   {show_about_screen, about_screen_event_handler, L"关于"},
+//{show_sensor_ready_to_connect_screen, sensor_event_handler, {0x73,0x51,0x8E,0x4E,0x00}},
+
+
+};
+
 static struct {
     int32_t start_item;
     int32_t curr_item_num;
@@ -299,10 +312,10 @@ static void main_screen_cntx_init()
     main_screen_cntx.color.blue = 0xFF;
 	main_screen_cntx.focus_point_index = 0;   //add by chenchen
 
-    string_info.string = convert_string_to_wstring((uint8_t*) demo_item[0].name);
-    string_info.count = strlen((char*) demo_item[0].name);
-//    string_info.string = (uint8_t*) demo_item[0].name;
-//    string_info.count = wcslen(demo_item[0].name);
+//    string_info.string = convert_string_to_wstring((uint8_t*) demo_item[0].name);
+//    string_info.count = strlen((char*) demo_item[0].name);
+    string_info.string = (uint8_t*) wdemo_item[0].name;
+    string_info.count = wcslen(wdemo_item[0].name) * 2;
     gdi_font_engine_get_string_information(&string_info);
     main_screen_cntx.item_width = string_info.width;
     main_screen_cntx.item_height = string_info.height;
@@ -572,9 +585,9 @@ static void tui_main_screen_draw()
 
 	param.x = x;
 	param.y = y - 90;
-	param.string = (uint8_t*) demo_item[pre].name;
-//  param.length = wcslen(demo_item[pre].name);
-    param.length = 4;
+	param.string = (uint8_t*) wdemo_item[pre].name;
+    param.length = wcslen(wdemo_item[pre].name) * 2;
+//    param.length = 4;
 	param.baseline_height = -1;
 	gdi_font_engine_display_string(&param);
 
@@ -589,8 +602,9 @@ static void tui_main_screen_draw()
 
 	param.x = x;
 	param.y = y + 73;
-	param.string = (uint8_t*) demo_item[next].name;
-    param.length = 4;
+	param.string = (uint8_t*) wdemo_item[next].name;
+    param.length = wcslen(wdemo_item[next].name) * 2;
+//    param.length = 4;
 	param.baseline_height = -1;
 	gdi_font_engine_display_string(&param);
 
@@ -606,8 +620,9 @@ static void tui_main_screen_draw()
 
 	param.x = x;
 	param.y = y - 17;
-	param.string = (uint8_t*) demo_item[main_screen_cntx.focus_point_index].name;
-	param.length = 4;
+	param.string = (uint8_t*) wdemo_item[main_screen_cntx.focus_point_index].name;
+    param.length = wcslen(wdemo_item[main_screen_cntx.focus_point_index].name) * 2;
+//	param.length = 4;
 	param.baseline_height = -1;
 	gdi_font_engine_display_string(&param);
 
