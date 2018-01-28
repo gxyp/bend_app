@@ -33,6 +33,7 @@ uint32_t TimeOutTime_config_load(TimeOut_Time_struct_t *t)
         t->poweron_BackWF_Time = 15;
 		t->backlight_Time = 8;
 		t->idle_BackWF_Time = 20;
+		t->popup_Time = 5;
 
         nvdm_write_data_item("LY_Bend","TimeOut_Time",NVDM_DATA_ITEM_TYPE_RAW_DATA,(const uint8_t*)t,sz);
 //    }

@@ -43,6 +43,7 @@ typedef struct TimeOut_Time_struct {
 	uint8_t poweron_BackWF_Time;
     uint8_t backlight_Time;
     uint8_t idle_BackWF_Time;
+    uint8_t popup_Time;
 } TimeOut_Time_struct_t;
 
 uint32_t TimeOutTime_config_load(TimeOut_Time_struct_t *t);

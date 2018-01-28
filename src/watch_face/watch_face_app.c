@@ -64,6 +64,7 @@
 
 #include "custom_image_data_resource.h"
 #include "custom_resource_def.h"
+#include "bend_config.h"
 
 extern gdi_resource_custom_image_t	gdi_resource_custom_image_names[];
 extern gdi_resource_custom_image_map_t gdi_resource_custom_image_id_map[];
@@ -93,6 +94,8 @@ static uint8_t g_wf_witdh_offset;
 
 TimerHandle_t vPopupTimer = NULL;
 TimerHandle_t vEnterSleepTimer = NULL;
+
+extern TimeOut_Time_struct_t g_TimeOut_Time;
 
 uint32_t g_wf_index_color_table[16] = 
 {
@@ -360,7 +363,10 @@ void wf_app_init(void)
 
 void vPopupTimerCallback( TimerHandle_t xTimer )
 {
+    uint8_t event;
+    event = WF_EVENT_RTC;
 	g_wf_is_show_screen = true;
+    xQueueSend(g_wtf_queue_handle, (void *) &event, 0 );
 	LOG_I(common, "chenchen vPopupTimerCallback true ");
 	pop_timer_stop();
 }
@@ -392,10 +398,10 @@ void pop_timer_init(uint32_t time)
 
 static void wf_show_pop_image(void)
 {
-	static uint8_t layer_buffer[LCD_WIDTH * LCD_HEIGHT * 2];
+//	static uint8_t layer_buffer[LCD_WIDTH * LCD_HEIGHT * 2];
 	
 	if (g_wf_is_show_screen){
-		gdi_init(LCD_WIDTH, LCD_HEIGHT, GDI_COLOR_FORMAT_16, layer_buffer);
+//		gdi_init(LCD_WIDTH, LCD_HEIGHT, GDI_COLOR_FORMAT_16, layer_buffer);
 		gdi_draw_filled_rectangle(0, 0, 320 - 1, 320 - 1, gdi_get_color_from_argb(0, 0, 0, 0)); // Clear the screen to black.
 
 
@@ -438,7 +444,7 @@ static void wf_app_keypad_event_handler(hal_keypad_event_t* keypad_event,void* u
         show_main_screen();
     } else {
         wf_show_pop_image();
-        pop_timer_init(5);
+        pop_timer_init(g_TimeOut_Time.popup_Time);
 
     }
 }
